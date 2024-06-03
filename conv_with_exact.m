@@ -7,7 +7,6 @@ Nt = 2.^(6:9);
 N = length(Nt);
 dim =1;
 
-% Uniform Mesh
 % N*(meshtype +1)*(normtype x2)
 Etable = zeros(N,7,6);
 Etable(:,1,:)=repmat(Nt',[1,1,6]); % error table
@@ -15,7 +14,6 @@ Etable(:,1,:)=repmat(Nt',[1,1,6]); % error table
 %================== setting degree of grading =============================
 r0=(2-Alpha)/(1+Beta-Alpha);
 R = [1, r0, r0+.5];
-% R = r0+1.5;
 
 for r = 1:length(R)
     for n = 1:N
@@ -42,7 +40,7 @@ for i = 1:6
 end
 fprintf('\n')
 
-%% save data
+%% show that the Error of Convergence (EOC)
 % fprintf('\n ================= H1-norm =============================== \n');
 % for n=1:N
 %     fprintf('%5d  &  %1.3e & %1.3f &  %1.3e & %1.3f &  %1.3e & %1.3f \\\\ \n',...

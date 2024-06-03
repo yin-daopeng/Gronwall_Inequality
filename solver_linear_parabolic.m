@@ -1,13 +1,13 @@
 function [uh,H1e,L2e,Linfe] = solver_linear_parabolic(Nt, Nx, Alpha, Beta, r)
-% c_{0} \partial_{t}^{\alpha}u - \epsilon \Delta u = \kappa u + f(x,t)
+% c_{\alpha} \partial_{t}^{\alpha}u - \epsilon \Delta u = \kappa u + f(x,t)
 T = 1;
 [tau,t] = time_mesh_generator(T, T*Nt, 1, r);
 
 x = linspace(-pi, pi, Nx+1);
 
 Calpha = 1; 
-Cdelta = 1; % \epsilon 
-Creact = 1; % \kappa 
+Eps = 1; % \epsilon 
+Kap = 1; % \kappa 
 const  = 1;
 
 
@@ -16,8 +16,8 @@ uh = zeros(Nx+1,length(t));
 uex = @(x,t)   sin(x).*(t.^Beta/gamma(1+Beta)+const); % exact solution
 phi = @(x,t)   cos(x).*(t.^Beta/gamma(1+Beta)+const); % Neumann bdr;
 src = @(x,t)   sin(x).*(Calpha*t.^(Beta-Alpha)/gamma(Beta-Alpha+1) ...
-                      - Creact*(t.^Beta/gamma(1+Beta)+const) ...
-                      + Cdelta*(t.^Beta/gamma(1+Beta)+const));
+                      - Kap*(t.^Beta/gamma(1+Beta)+const) ...
+                      + Eps*(t.^Beta/gamma(1+Beta)+const));
 
 %----------------------------------------
 [tt,xx] = meshgrid(t,x);
@@ -35,7 +35,7 @@ chose_bdr = 1;
 switch chose_bdr
     case 1 % 'Dirichlet'
         Lh = D/h^2;
-        F([2,end-1], :) = F([2,end-1], :) + Cdelta/h^2*u([1,end],:);
+        F([2,end-1], :) = F([2,end-1], :) + Eps/h^2*u([1,end],:);
     case 2 % 'Neumann'
         Lh(  1,    1:2  ) = -[ 1, -1]/h^2;
         Lh(end,end-1:end) = -[-1,  1]/h^2; % [-3, 4 , -1]/dx/2;
@@ -57,15 +57,12 @@ E = eye(size(Lh));
 his = zeros(Nx-1,1);
 uh_in = uh(2:end-1,:);
 
-tic
 for n = 1: length(tau)    
-    M = Calpha*dck(n, n)*E - Cdelta*Lh - Creact*E;
+    M = Calpha*dck(n, n)*E - Eps*Lh - Kap*E;
     if n > 1; his = Calpha*(diff(uh_in(:, 1:n),1,2)*dck(n, 1:n-1)'); end % the history parts;
     v = Calpha*dck(n, n)*uh_in(:, n) - his + F(2:end-1,n+1);
-%         Uh(:, n+1) = minres(M,V,1.e-7,100); % 
     uh_in(:, n+1) = M\v;
 end
-toc 
 
 uh(2:end-1,2:end) = uh_in(:,2:end);
 
